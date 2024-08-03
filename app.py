@@ -38,17 +38,26 @@ def input_pdf_setup(uploaded_file):
     else:
         raise FileNotFoundError("No file uploaded")
 
+# Function to check relevance of the question
+def is_question_relevant(question):
+    relevant_keywords = [
+        "resume", "job description", "skill", "experience", "education", "project",
+        "achievement", "weakness", "strength", "ATS", "match", "improvement", "keyword"
+    ]
+    question_lower = question.lower()
+    return any(keyword in question_lower for keyword in relevant_keywords)
+
 # Streamlit App
 
 st.set_page_config(page_title="ATS Resume Expert")
-st.header("ATS Tracking System")
+st.header("Application Tracking System(ATS)")
 input_text = st.text_area("Job Description: ", key="input")
 uploaded_file = st.file_uploader("Upload your resume (PDF)...", type=["pdf"])
 
 if uploaded_file is not None:
     st.write("PDF Uploaded Successfully")
 
-# Create two columns
+
 col1, col2 = st.columns(2)
 
 with col1:
@@ -174,3 +183,20 @@ elif submit8:
         st.write(response)
     else:
         st.write("Please upload the resume")
+
+# Chat bot input
+st.subheader("Chat with ATS Expert")
+chat_input = st.text_input("Ask any question related to your resume and job description:", key="chat_input")
+chat_submit = st.button("Submit Question")
+
+if chat_submit:
+    if is_question_relevant(chat_input):
+        if uploaded_file is not None:
+            pdf_content = input_pdf_setup(uploaded_file)
+            chat_response = get_gemini_response(chat_input, pdf_content, input_text)
+            st.subheader("Chatbot Response")
+            st.write(chat_response)
+        else:
+            st.write("Please upload the resume")
+    else:
+        st.write("The question seems to be irrelevant to your resume and job description. Please ask a relevant question.")
